@@ -6,7 +6,11 @@ Gem::Specification.new do |s|
   s.description = "An unofficial FFXIV ARR toolkit for Ruby, featuring Lodestone scraper."
   s.authors     = ["Isjaki Kveikur"]
   s.email       = ["isjaki.xiv@gmail.com"]
-  s.files       = ["lib/*.rb"]
+  s.files       = ["lib/ffxiv.rb",
+                   "lib/ffxiv/lodestone.rb",
+                   "lib/ffxiv/lodestone/model.rb",
+                   "lib/ffxiv/lodestone/character.rb",
+                   "lib/ffxiv/lodestone/free-company.rb"]
   s.homepage    = "http://rubygems.org/gems/ffxiv"
   s.license     = "MIT"
 end
