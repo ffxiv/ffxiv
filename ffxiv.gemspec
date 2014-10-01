@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = "ffxiv"
-  s.version     = "0.9.1"
+  s.version     = "0.9.2"
   s.date        = "2014-09-29"
   s.summary     = "An unofficial FFXIV ARR toolkit for Ruby, featuring Lodestone scraper."
   s.description = "An unofficial FFXIV ARR toolkit for Ruby, featuring Lodestone scraper."
@@ -13,4 +13,5 @@ Gem::Specification.new do |s|
                    "lib/ffxiv/lodestone/free-company.rb"]
   s.homepage    = "https://github.com/ffxiv/ffxiv"
   s.license     = "MIT"
+  s.add_runtime_dependency "nokogiri", ">=1.5.0", "<1.7.0"
 end
