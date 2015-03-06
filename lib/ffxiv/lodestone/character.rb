@@ -5,14 +5,45 @@ module FFXIV
       attr_accessor :id, :name, :server, :thumbnail_uri, :image_uri, :race, :subrace, :gender,
                     :nameday, :guardian, :city_state, :grand_company, :grand_company_rank,
                     :free_company, :minions, :mounts, :end_contents, :self_introduction, :classes,
-                    :num_blogs, :first_blogged, :latest_blogged, :bpd, :free_company_rank
+                    :num_blogs, :first_blogged, :latest_blogged, :bpd, :free_company_rank, :linkshell_rank
       alias :end_contents? :end_contents
 
       class << self
 
+        def search(keyword, server: nil, page: 1, verbose: false)
+          dom = Lodestone.fetch("character/?q=#{URI.escape(keyword)}&worldname=#{server ? URI.escape(server) : ""}&page=#{URI.escape(page.to_s)}")
+          # Couldn't find a way to get this node with CSS...
+          characters = dom.xpath("//comment()[.=' result ']/following::table[1]/tr").map do |tr|
+            h4 = tr.at("td h4")
+            a = h4.at("a")
+            id = a.attr("href").split("/")[-1].to_i
+            if verbose
+              self.find_by_id(id)
+            else
+              self.new({
+                id: id,
+                name: a.content,
+                server: h4.at("span").content.strip[1...-1],
+                thumbnail_uri: drop_uts(tr.at("th img").attr("src"))
+              })
+            end
+          end
+          pagination = dom.at("div.current_list")
+          total = pagination.at("span.total").content.to_i
+          results = {
+            show_start: pagination.at("span.show_start").content.to_i,
+            show_end: pagination.at("span.show_end").content.to_i,
+            total: total,
+            num_pages: (total / 50.0).ceil,
+            characters: characters
+          }
+        end
+
         def name_to_id(name, server)
-          dom = Lodestone.fetch("character/?q=#{URI.escape(name)}&worldname=#{URI.escape(server)}")
-          dom.at("h4.player_name_gold a").attr("href").split("/")[-1].to_i
+          self.search(name, server: server)[:characters].each do |ch|
+            return ch.id if name == ch.name
+          end
+          nil
         end
 
         def find_by_id(id)
@@ -21,36 +52,53 @@ module FFXIV
 
             props = {}
             props[:id] = id
-            props[:name] = dom.css("div.player_name_txt h2 a").inner_text
-            props[:server] = dom.css("div.player_name_txt h2 span").inner_text[2...-1]
-            props[:thumbnail_uri] = drop_uts(dom.css("div.player_name_thumb img").attr("src").inner_text)
-            props[:image_uri] = drop_uts(dom.css("img[width='264']").attr("src").inner_text)
-            props[:race], props[:subrace], props[:gender] = dom.css("div.chara_profile_title").inner_text.strip.split(" / ")
-            dom.css("ul.chara_profile_list li").to_a.each do |n|
-              t = n.inner_text
-              if t.include?("Nameday")
-                props[:nameday], props[:guardian] = n.css(".txt_yellow").to_a.map(&:inner_text)
-              elsif t.include?("City-state")
-                props[:city_state] = n.css(".txt_yellow").inner_text
-              elsif t.include?("Grand Company")
-                props[:grand_company], props[:grand_company_rank] = n.css(".txt_yellow").inner_text.split("/")
-              elsif t.include?("Free Company")
-                props[:free_company] = n.css(".txt_yellow").inner_text
+            ch_name = dom.at("div.player_name_txt h2 a")
+            props[:name] = ch_name.content
+            props[:server] = ch_name.next_element.content.strip[1...-1]
+            props[:thumbnail_uri] = drop_uts(dom.at("div.player_name_thumb img").attr("src"))
+            props[:image_uri] = drop_uts(dom.at("div.bg_chara_264 img").attr("src"))
+            props[:race], props[:subrace], gender = dom.at("div.chara_profile_title").content.strip.split(" / ")
+            props[:gender] = case gender
+              when "♀" then :female
+              when "♂" then :male
+              else raise "Unrecognized gender symbol: #{gender}"
+            end
+
+            dom.search("dl.chara_profile_box_info").each do |n|
+              n.search("dd.txt").each do |dd|
+                t = dd.next_element.content
+                case dd.content
+                  when "Nameday"
+                    props[:nameday] = t
+                  when "Guardian"
+                    props[:guardian] = t
+                  when "City-state"
+                    props[:city_state] = t
+                  when "Grand Company"
+                    props[:grand_company], props[:grand_company_rank] = t.split("/")
+                  when "Free Company"
+                    props[:free_company] = t
+                end
               end
             end
-            dom.css("div.area_header_w358_inner").to_a.each do |n|
-              aname = n.css("h4.ic_silver").inner_text.downcase
-              items = n.css("a.ic_reflection_box").to_a.map{|m| m.attr("title")}.map{|i| i.capitalize.gsub(/[\s][a-z]/) {|s| s.upcase}}.sort
-              props[:"#{aname}"] = items
-            end
+
+            # The first "minion_box" contains mounts, and they need capitalization unlike minions.
+            minion_boxes = dom.search("div.minion_box")
+            props[:mounts] = minion_boxes[0].search("a").map{|a| a.attr("title").split.map(&:capitalize).join(' ')}
+            props[:minions] = minion_boxes[1].search("a").map{|a| a.attr("title")}
+
+            # For now, it's safe to assume that whoever has this mount has slained Ultima Weapon and watched the ending movie, hence is qualified for the endgame contents.
             props[:end_contents] = props[:mounts].include?("Magitek Armor")
-            props[:self_introduction] = dom.css("div.txt_selfintroduction").inner_html.strip
+
+            self_introduction = dom.at("div.txt_selfintroduction").inner_html.strip
+            props[:self_introduction] = self_introduction == "" ? nil : self_introduction
+
             props[:classes] = {}
             %w{fighter sorcerer crafter gatherer}.each do |discipline|
-              dom.css("h4.class_#{discipline} + div.table_black_w626 td.ic_class_wh24_box").to_a.each do |td|
-                txt = td.inner_text
-                if !txt.empty?
-                  lvl = td.next_sibling().next_sibling().inner_text.to_i
+              dom.search("h4.class_#{discipline} + div.table_black_w626 td.ic_class_wh24_box").each do |td|
+                txt = td.content
+                unless txt.empty?
+                  lvl = td.next_sibling().next_sibling().content.to_i
                   props[:classes][txt] = lvl == 0 ? nil : lvl
                 end
               end
@@ -63,6 +111,13 @@ module FFXIV
           end
         end
 
+      end
+
+      def free_company(fetch = false)
+        if fetch && !@free_company.is_a?(FreeCompany)
+          @free_company = FreeCompany.find_by_name(@free_company, @server)
+        end
+        @free_company
       end
 
       def num_blogs
