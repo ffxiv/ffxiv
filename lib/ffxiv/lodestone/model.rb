@@ -14,6 +14,13 @@ module FFXIV
         end
       end
 
+      def attributes
+        instance_variables.inject({}) do |attrs, aname|
+          attrs[aname] = instance_variable_get(aname)
+          attrs
+        end
+      end
+
       private
       def self.drop_uts(str)
         str[0...(str.size - 11)] # ?1234567890
