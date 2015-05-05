@@ -3,10 +3,11 @@ module FFXIV
     class Character < Model
 
       attr_accessor :id, :name, :server, :thumbnail_uri, :image_uri, :race, :subrace, :gender,
-                    :nameday, :guardian, :city_state, :grand_company, :grand_company_rank,
-                    :free_company, :minions, :mounts, :end_contents, :self_introduction, :classes,
+                    :nameday, :guardian, :city_state, :grand_company, :grand_company_rank, :free_company,
+                    :minions, :mounts, :end_contents, :eternal_bonding, :self_introduction, :classes,
                     :num_blogs, :first_blogged, :latest_blogged, :bpd, :free_company_rank, :linkshell_rank
       alias :end_contents? :end_contents
+      alias :eternal_bonding? :eternal_bonding
 
       class << self
 
@@ -29,7 +30,9 @@ module FFXIV
             end
           end
           pagination = dom.at("div.current_list")
-          total = pagination.at("span.total").content.to_i
+          span_total = pagination.at("span.total")
+          raise "Character not found" unless span_total
+          total = span_total.content.to_i
           results = {
             show_start: pagination.at("span.show_start").content.to_i,
             show_end: pagination.at("span.show_end").content.to_i,
@@ -77,7 +80,7 @@ module FFXIV
                   when "Grand Company"
                     props[:grand_company], props[:grand_company_rank] = t.split("/")
                   when "Free Company"
-                    props[:free_company] = t
+                    props[:free_company] = FreeCompany.new(name: t, server: props[:server])
                 end
               end
             end
@@ -87,8 +90,12 @@ module FFXIV
             props[:mounts] = minion_boxes[0].search("a").map{|a| a.attr("title").split.map(&:capitalize).join(' ')}
             props[:minions] = minion_boxes[1].search("a").map{|a| a.attr("title")}
 
-            # For now, it's safe to assume that whoever has this mount has slained Ultima Weapon and watched the ending movie, hence is qualified for the endgame contents.
+            # Let's assume that whoever has this mount has slained Ultima Weapon and watched the ending movie, hence is qualified for the endgame contents.
             props[:end_contents] = props[:mounts].include?("Magitek Armor")
+
+            # Likewise, assume that whoever has this mount has purchased Gold or Platinum eternal bonding.
+            # Note that Standard version doesn't come with the mount, so use nil instead of false to indicate "unknown".
+            props[:eternal_bonding] = props[:mounts].include?("Ceremony Chocobo") ? true : nil
 
             self_introduction = dom.at("div.txt_selfintroduction").inner_html.strip
             props[:self_introduction] = self_introduction == "" ? nil : self_introduction
@@ -114,7 +121,7 @@ module FFXIV
       end
 
       def free_company(fetch = false)
-        if fetch && !@free_company.is_a?(FreeCompany)
+        if fetch
           @free_company = FreeCompany.find_by_name(@free_company, @server)
         end
         @free_company
@@ -136,6 +143,77 @@ module FFXIV
         init_blog; @first_blogged
       end
 
+      def blogs(load_details = false)
+        unless @blogs
+          @blogs = []
+          if num_blogs > 0
+            num_blog_pages = (num_blogs / 10.0).ceil
+            1.upto(num_blog_pages) do |page|
+              dom = Lodestone.fetch("character/#{@id}/blog?order=2&page=#{page}")
+              dom.search("section.base_body").each do |section_blog|
+                a_title = section_blog.at("a.blog_title")
+                blog = {
+                  id: a_title.attr("href").split("/")[-1],
+                  title: a_title.content,
+                  date: Time.at(section_blog.at("script").content[/ldst_strftime\((\d{10}),/, 1].to_i),
+                  num_comments: section_blog.at("span.ic_comment").content.to_i
+                }
+                if load_details
+                  dom_blog = Lodestone.fetch("character/#{@id}/blog/#{blog[:id]}")
+                  blog[:body] = dom_blog.at(".txt_selfintroduction").inner_html.strip
+
+                  blog[:comments] = []
+                  if blog[:num_comments] > 0
+                    dom_blog.search("div.comment").each do |dom_comment|
+                      unless dom_comment.at("div.comment_delete_box")
+                        div_by = dom_comment.at("div.player_id")
+                        by = nil
+                        if div_by
+                          a_by = div_by.at("a")
+                          by = self.class.new({
+                            id: a_by.attr("href").split("/")[-1],
+                            name: a_by.content,
+                            server: div_by.at("span").content.strip[1...-1]
+                          })
+                        end
+                        blog[:comments] << {
+                          by: by,
+                          date: Time.at(dom_comment.at("script").content[/ldst_strftime\((\d{10}),/, 1].to_i),
+                          body: dom_comment.at("div.balloon_body_inner").inner_html.strip
+                        }
+                      end
+                    end
+                  end
+
+                  blog[:tags] = []
+                  a_tags = dom_blog.search("div.diary_tag a")
+                  if a_tags
+                    a_tags.each do |a_tag|
+                      blog[:tags] << a_tag.content[1...-1]
+                    end
+                  end
+
+                  blog[:images] = []
+                  img_thumbs = dom_blog.search("ul.thumb_list li img")
+                  if img_thumbs
+                    img_thumbs.each do |img_thumb|
+                      unless img_thumb.attr("class") == "img_delete"
+                        blog[:images] << {
+                          thumbnail: img_thumb.attr("src"),
+                          original: img_thumb.attr("data-origin_src")
+                        }
+                      end
+                    end
+                  end
+                end
+                @blogs << blog
+              end
+            end
+          end
+        end
+        @blogs
+      end
+
       def thumbnail_uri
         @thumbnail_uri + "?#{Time.now.to_i}"
       end
@@ -149,11 +227,11 @@ module FFXIV
         if @num_blogs.nil?
           dom1 = Lodestone.fetch("character/#{@id}/blog?order=1")
           total_node = dom1.at("div.current_list span.total")
-          @num_blogs = total_node.nil? ? 0 : total_node.inner_text.to_i
+          @num_blogs = total_node.nil? ? 0 : total_node.content.to_i
           if @num_blogs > 0
             dom2 = Lodestone.fetch("character/#{@id}/blog?order=2")
             {latest_blogged: dom1, first_blogged: dom2}.each do |prop, dom|
-              txt = dom.at("h3.header_title").inner_text
+              txt = dom.at("h3.header_title").content
               uts = txt.match(/ldst_strftime\((\d{10}), 'YMDHM'\)/)[1].to_i
               send("#{prop}=", Time.at(uts).utc)
             end
