@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name        = "ffxiv"
-  s.version     = "0.9.5"
-  s.date        = "2015-03-03"
+  s.version     = "0.9.7"
+  s.date        = "2015-05-04"
   s.summary     = "An unofficial FFXIV ARR toolkit for Ruby, featuring Lodestone scraper."
   s.description = "An unofficial Final Fantasy XIV / A Realm Reborn toolkit for Ruby, featuring Lodestone scraper."
   s.authors     = ["Syro Bonkus"]

@@ -16,7 +16,7 @@ module FFXIV
 
       def attributes
         instance_variables.inject({}) do |attrs, aname|
-          attrs[aname] = instance_variable_get(aname)
+          attrs[aname[1..-1].to_sym] = instance_variable_get(aname)
           attrs
         end
       end
