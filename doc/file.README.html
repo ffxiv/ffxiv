@@ -1,0 +1,173 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>
+  File: README
+  
+    &mdash; Documentation by YARD 0.8.7.6
+  
+</title>
+
+  <link rel="stylesheet" href="css/style.css" type="text/css" charset="utf-8" />
+
+  <link rel="stylesheet" href="css/common.css" type="text/css" charset="utf-8" />
+
+<script type="text/javascript" charset="utf-8">
+  hasFrames = window.top.frames.main ? true : false;
+  relpath = '';
+  framesUrl = "frames.html#!file.README.html";
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div id="header">
+      <div id="menu">
+  
+    <a href="_index.html">Index</a> &raquo; 
+    <span class="title">File: README</span>
+  
+
+  <div class="noframes"><span class="title">(</span><a href="." target="_top">no frames</a><span class="title">)</span></div>
+</div>
+
+      <div id="search">
+  
+    <a class="full_list_link" id="class_list_link"
+        href="class_list.html">
+      Class List
+    </a>
+  
+    <a class="full_list_link" id="method_list_link"
+        href="method_list.html">
+      Method List
+    </a>
+  
+    <a class="full_list_link" id="file_list_link"
+        href="file_list.html">
+      File List
+    </a>
+  
+</div>
+      <div class="clear"></div>
+    </div>
+
+    <iframe id="search_frame"></iframe>
+
+    <div id="content"><div id='filecontents'>
+<h1 id="label-FFXIV">FFXIV</h1>
+
+<p>An unofficial Ruby toolkit for Final Fantasy XIV: A Realm Reborn, featuring
+Lodestone scraper.</p>
+
+<h2 id="label-Installation">Installation</h2>
+
+<pre class="code ruby"><code class="ruby">$ gem install ffxiv</code></pre>
+
+<h2 id="label-Usage">Usage</h2>
+
+<p>Currently there are three flavors of Lodestone scrapers - <a
+href="lib/ffxiv/lodestone/character.rb">Character</a>, <a
+href="lib/ffxiv/lodestone/free-company.rb">FreeCompany</a>, and <a
+href="lib/ffxiv/lodestone/linkshell.rb">Linkshell</a>.</p>
+
+<p>Each class is designed to be somewhat similar to ActiveModel in Rails where
+class methods handle aggregate opeartions such as search, and each instance
+represents a single model (i.e. character, free company, or linkshell).</p>
+
+<h3 id="label-Basics">Basics</h3>
+
+<p>If you know the ID of the cahracter you want to fetch:</p>
+
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_ch'>ch</span> <span class='op'>=</span> <span class='const'>FFXIV</span><span class='op'>::</span><span class='const'>Lodestone</span><span class='op'>::</span><span class='const'>Character</span><span class='period'>.</span><span class='id identifier rubyid_find_by_id'>find_by_id</span><span class='lparen'>(</span><span class='id identifier rubyid_id'>id</span><span class='rparen'>)</span>
+</code></pre>
+
+<p>If you know the name and the server of this character is on:</p>
+
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_ch'>ch</span> <span class='op'>=</span> <span class='const'>FFXIV</span><span class='op'>::</span><span class='const'>Lodestone</span><span class='op'>::</span><span class='const'>Character</span><span class='period'>.</span><span class='id identifier rubyid_find_by_name'>find_by_name</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='comma'>,</span> <span class='id identifier rubyid_server'>server</span><span class='rparen'>)</span>
+<span class='comment'># name must be a full name.
+</span></code></pre>
+
+<p>Either method returns an instance of FFXIV::Lodestone::Character or nil if
+not found. Note that searching by ID is always faster than searching by
+name.</p>
+
+<p>Same is true for FreeCompany and Linkshell:</p>
+
+<pre class="code ruby"><code class="ruby"><span class='comment'># FreeCompany
+</span><span class='id identifier rubyid_fc'>fc</span> <span class='op'>=</span> <span class='const'>FFXIV</span><span class='op'>::</span><span class='const'>Lodestone</span><span class='op'>::</span><span class='const'>FreeCompany</span><span class='period'>.</span><span class='id identifier rubyid_find_by_id'>find_by_id</span><span class='lparen'>(</span><span class='id identifier rubyid_id'>id</span><span class='rparen'>)</span>
+<span class='id identifier rubyid_fc'>fc</span> <span class='op'>=</span> <span class='const'>FFXIV</span><span class='op'>::</span><span class='const'>Lodestone</span><span class='op'>::</span><span class='const'>FreeCompany</span><span class='period'>.</span><span class='id identifier rubyid_find_by_name'>find_by_name</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='comma'>,</span> <span class='id identifier rubyid_server'>server</span><span class='rparen'>)</span>
+
+<span class='comment'># Linkshell
+</span><span class='id identifier rubyid_ls'>ls</span> <span class='op'>=</span> <span class='const'>FFXIV</span><span class='op'>::</span><span class='const'>Lodestone</span><span class='op'>::</span><span class='const'>Linkshell</span><span class='period'>.</span><span class='id identifier rubyid_find_by_id'>find_by_id</span><span class='lparen'>(</span><span class='id identifier rubyid_id'>id</span><span class='rparen'>)</span>
+<span class='id identifier rubyid_ls'>ls</span> <span class='op'>=</span> <span class='const'>FFXIV</span><span class='op'>::</span><span class='const'>Lodestone</span><span class='op'>::</span><span class='const'>Linkshell</span><span class='period'>.</span><span class='id identifier rubyid_find_by_name'>find_by_name</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='comma'>,</span> <span class='id identifier rubyid_server'>server</span><span class='rparen'>)</span>
+</code></pre>
+
+<h3 id="label-Character">Character</h3>
+
+<p>Some interesting methods: “` ch =
+FFXIV::Lodestone::Character.find_by_name(&#39;Syro Bonkus&#39;,
+&#39;Chocobo&#39;)</p>
+
+<h1 id="label-Free+Company+this+character+belongs+to-3A">Free Company this character belongs to:</h1>
+
+<h1 id="label-Note+that+this+FreeCompany+instance+is+populated+for+only+the+fields+that+are+shown+on+the+character-27s+page+-28i.e.+name-2C+server-29">Note that this FreeCompany instance is populated for only the fields that are shown on the character&#39;s page (i.e. name, server)</h1>
+
+<p>fc = ch.free_company</p>
+
+<h1 id="label-If+you+want+a+fully+populated+FreeCompany+instance-2C+pass+true+as+the+first+arugment-3A">If you want a fully populated FreeCompany instance, pass true as the first arugment:</h1>
+
+<p>full_fc = ch.free_company(true)</p>
+
+<h1 id="label-Number+of+blogs+to+date-3A">Number of blogs to date:</h1>
+
+<p>puts ch.num_blogs</p>
+
+<h1 id="label-Daily+frequency+of+blogging-3A">Daily frequency of blogging:</h1>
+
+<p>ch.bpd</p>
+
+<h1 id="label-Blogs+this+character+has+published+-28only+the+public+posts-29-3A">Blogs this character has published (only the public posts):</h1>
+
+<p>blogs = ch.blogs</p>
+
+<h1 id="label-If+you+want+to+fetch+all+of+the+blog+comments-2C+then+pass+true+as+the+first+argument-3A">If you want to fetch all of the blog comments, then pass true as the first argument:</h1>
+
+<p>blogs_with_comments = ch.blogs(true)</p>
+
+<h1 id="label-Note+that+-23blogs-28-29+can+be+very+costly-2C+depending+on+the+number+of+the+blogs+and+blog+comments+this+character+has.+Use+it+wisely.">Note that #blogs() can be very costly, depending on the number of the blogs and blog comments this character has. Use it wisely.</h1>
+
+<p>“`</p>
+
+<h2 id="label-Contributing">Contributing</h2>
+
+<p>This is a one-man project I have started to make my life in Eorzea a little
+better. Current focus is on scraping the <a
+href="http://na.finalfantasyxiv.com/lodestone/">Lodestone website</a>. Feel
+free to submit issues, suggestions, and/or pull requests! ;)</p>
+
+<h2 id="label-License">License</h2>
+
+<p>Distributed under the <a href="LICENSE">MIT License</a>.</p>
+
+<h2 id="label-Credits">Credits</h2>
+
+<p>FINAL FANTASY XIV is a registered trademark of Square Enix Holdings Co.,
+Ltd. A REALM REBORN is a trademark of Square Enix Co., Ltd.</p>
+</div></div>
+
+    <div id="footer">
+  Generated on Mon May  4 21:36:12 2015 by
+  <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.8.7.6 (ruby-2.2.2).
+</div>
+
+  </body>
+</html>
