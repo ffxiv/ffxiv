@@ -69,7 +69,8 @@ module FFXIV
 
             dom.search("dl.chara_profile_box_info").each do |n|
               n.search("dd.txt").each do |dd|
-                t = dd.next_element.content
+                dd_txt_name = dd.next_element
+                t = dd_txt_name.content
                 case dd.content
                   when "Nameday"
                     props[:nameday] = t
@@ -80,7 +81,7 @@ module FFXIV
                   when "Grand Company"
                     props[:grand_company], props[:grand_company_rank] = t.split("/")
                   when "Free Company"
-                    props[:free_company] = FreeCompany.new(name: t, server: props[:server])
+                    props[:free_company] = FreeCompany.new(id: dd_txt_name.at("a").attr("href").split("/")[-1].to_i, name: t, server: props[:server])
                 end
               end
             end
