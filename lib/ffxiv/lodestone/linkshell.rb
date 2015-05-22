@@ -43,6 +43,7 @@ module FFXIV
               return ls.id if name == ls.name
             end
           end
+          nil
         end
 
         def find_by_id(id)

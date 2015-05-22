@@ -51,6 +51,7 @@ module FFXIV
               return ch.id if name == ch.name
             end
           end
+          nil
         end
 
         def find_by_id(id)
