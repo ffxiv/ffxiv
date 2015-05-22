@@ -27,26 +27,25 @@ module FFXIV
             end
           end
           pagination = dom.at("div.current_list")
-          total = pagination.at("span.total").content.to_i
-          results = {
-            show_start: pagination.at("span.show_start").content.to_i,
-            show_end: pagination.at("span.show_end").content.to_i,
-            total: total,
-            num_pages: (total / 50.0).ceil,
-            free_companies: free_companies
-          }
-        end
-
-        def name_to_id(name, server)
-          dom = Lodestone.fetch("freecompany/?q=#{URI.escape(name)}&worldname=#{URI.escape(server)}")
-          dom.at("div.ic_freecompany_box a").attr("href").split("/")[-1].to_i
-        end
-
-        def name_to_id(name, server)
-          self.search(name, server: server)[:free_companies].each do |fc|
-            return fc.id if name == fc.name
+          if pagination
+            total = pagination.at("span.total").content.to_i
+            results = {
+              show_start: pagination.at("span.show_start").content.to_i,
+              show_end: pagination.at("span.show_end").content.to_i,
+              total: total,
+              num_pages: (total / 50.0).ceil,
+              free_companies: free_companies
+            }
           end
-          nil
+        end
+
+        def name_to_id(name, server)
+          search_results = self.search(name, server: server)
+          if search_results
+            search_results[:free_companies].each do |fc|
+              return fc.id if name == fc.name
+            end
+          end
         end
 
         def find_by_id(id)

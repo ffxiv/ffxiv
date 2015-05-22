@@ -24,21 +24,25 @@ module FFXIV
             end
           end
           pagination = dom.at("div.current_list")
-          total = pagination.at("span.total").content.to_i
-          results = {
-            show_start: pagination.at("span.show_start").content.to_i,
-            show_end: pagination.at("span.show_end").content.to_i,
-            total: total,
-            num_pages: (total / 50.0).ceil,
-            linkshells: linkshells
-          }
+          if pagination
+            total = pagination.at("span.total").content.to_i
+            results = {
+              show_start: pagination.at("span.show_start").content.to_i,
+              show_end: pagination.at("span.show_end").content.to_i,
+              total: total,
+              num_pages: (total / 50.0).ceil,
+              linkshells: linkshells
+            }
+          end
         end
 
         def name_to_id(name, server)
-          self.search(name, server: server)[:linkshells].each do |ls|
-            return ls.id if name == ls.name
+          search_results = self.search(name, server: server)
+          if search_results
+            search_results[:linkshells].each do |ls|
+              return ls.id if name == ls.name
+            end
           end
-          nil
         end
 
         def find_by_id(id)

@@ -30,23 +30,27 @@ module FFXIV
             end
           end
           pagination = dom.at("div.current_list")
-          span_total = pagination.at("span.total")
-          raise "Character not found" unless span_total
-          total = span_total.content.to_i
-          results = {
-            show_start: pagination.at("span.show_start").content.to_i,
-            show_end: pagination.at("span.show_end").content.to_i,
-            total: total,
-            num_pages: (total / 50.0).ceil,
-            characters: characters
-          }
+          if pagination
+            span_total = pagination.at("span.total")
+            raise "Character not found" unless span_total
+            total = span_total.content.to_i
+            results = {
+              show_start: pagination.at("span.show_start").content.to_i,
+              show_end: pagination.at("span.show_end").content.to_i,
+              total: total,
+              num_pages: (total / 50.0).ceil,
+              characters: characters
+            }
+          end
         end
 
         def name_to_id(name, server)
-          self.search(name, server: server)[:characters].each do |ch|
-            return ch.id if name == ch.name
+          search_result = self.search(name, server: server)
+          if search_result
+            search_result[:characters].each do |ch|
+              return ch.id if name == ch.name
+            end
           end
-          nil
         end
 
         def find_by_id(id)
