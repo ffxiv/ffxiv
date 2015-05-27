@@ -48,7 +48,7 @@ module FFXIV
           search_result = self.search(name, server: server)
           if search_result
             search_result[:characters].each do |ch|
-              return ch.id if name == ch.name
+              return ch.id if name.downcase == ch.name.downcase
             end
           end
           nil

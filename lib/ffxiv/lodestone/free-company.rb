@@ -43,7 +43,7 @@ module FFXIV
           search_results = self.search(name, server: server)
           if search_results
             search_results[:free_companies].each do |fc|
-              return fc.id if name == fc.name
+              return fc.id if name.downcase == fc.name.downcase
             end
           end
           nil

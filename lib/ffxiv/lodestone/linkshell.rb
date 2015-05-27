@@ -40,7 +40,7 @@ module FFXIV
           search_results = self.search(name, server: server)
           if search_results
             search_results[:linkshells].each do |ls|
-              return ls.id if name == ls.name
+              return ls.id if name.downcase == ls.name.downcase
             end
           end
           nil
