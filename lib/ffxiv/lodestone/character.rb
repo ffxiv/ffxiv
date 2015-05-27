@@ -183,6 +183,7 @@ module FFXIV
                           })
                         end
                         blog[:comments] << {
+                          id: dom_comment.previous_element.attr("name").split("_")[1].to_i,
                           by: by,
                           date: Time.at(dom_comment.at("script").content[/ldst_strftime\((\d{10}),/, 1].to_i),
                           body: dom_comment.at("div.balloon_body_inner").inner_html.strip
