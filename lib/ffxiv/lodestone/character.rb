@@ -107,12 +107,13 @@ module FFXIV
             props[:self_introduction] = self_introduction == "" ? nil : self_introduction
 
             props[:classes] = {}
-            %w{fighter sorcerer crafter gatherer}.each do |discipline|
-              dom.search("h4.class_#{discipline} + div.table_black_w626 td.ic_class_wh24_box").each do |td|
+            %w{Fighter Sorcerer Crafter Gatherer}.each do |discipline|
+              props[:classes][discipline] = {}
+              dom.search("h4.class_#{discipline.downcase} + div.table_black_w626 td.ic_class_wh24_box").each do |td|
                 txt = td.content
                 unless txt.empty?
                   lvl = td.next_sibling().next_sibling().content.to_i
-                  props[:classes][txt] = lvl == 0 ? nil : lvl
+                  props[:classes][discipline][txt] = lvl == 0 ? nil : lvl
                 end
               end
             end
