@@ -2,10 +2,10 @@ module FFXIV
   module Lodestone
     class Character < Model
 
-      attr_accessor :id, :name, :server, :thumbnail_uri, :image_uri, :race, :subrace, :gender, :nameday,
-                    :birthday, :guardian, :city_state, :grand_company, :grand_company_rank, :free_company,
-                    :minions, :mounts, :end_contents, :eternal_bonding, :self_introduction, :classes,
-                    :num_blogs, :first_blogged, :latest_blogged, :bpd, :free_company_rank, :linkshell_rank
+      attr_accessor :id, :name, :server, :data_center, :thumbnail_uri, :image_uri, :race, :subrace, :gender,
+                    :nameday, :birthday, :guardian, :city_state, :grand_company, :grand_company_rank, :free_company,
+                    :minions, :mounts, :end_contents, :eternal_bonding, :self_introduction, :classes, :num_blogs,
+                    :first_blogged, :latest_blogged, :bpd, :free_company_rank, :linkshell_rank
       alias :end_contents? :end_contents
       alias :eternal_bonding? :eternal_bonding
 
