@@ -2,8 +2,8 @@ module FFXIV
   module Lodestone
     class Character < Model
 
-      attr_accessor :id, :name, :server, :thumbnail_uri, :image_uri, :race, :subrace, :gender,
-                    :nameday, :guardian, :city_state, :grand_company, :grand_company_rank, :free_company,
+      attr_accessor :id, :name, :server, :thumbnail_uri, :image_uri, :race, :subrace, :gender, :nameday,
+                    :birthday, :guardian, :city_state, :grand_company, :grand_company_rank, :free_company,
                     :minions, :mounts, :end_contents, :eternal_bonding, :self_introduction, :classes,
                     :num_blogs, :first_blogged, :latest_blogged, :bpd, :free_company_rank, :linkshell_rank
       alias :end_contents? :end_contents
@@ -72,6 +72,21 @@ module FFXIV
               else raise "Unrecognized gender symbol: #{gender}"
             end
 
+            months = {
+              "1st Astral Moon" => 1,
+              "1st Umbral Moon" => 2,
+              "2nd Astral Moon" => 3,
+              "2nd Umbral Moon" => 4,
+              "3rd Astral Moon" => 5,
+              "3rd Umbral Moon" => 6,
+              "4th Astral Moon" => 7,
+              "4th Umbral Moon" => 8,
+              "5th Astral Moon" => 9,
+              "5th Umbral Moon" => 10,
+              "6th Astral Moon" => 11,
+              "6th Umbral Moon" => 12
+            }
+
             dom.search("dl.chara_profile_box_info").each do |n|
               n.search("dd.txt").each do |dd|
                 dd_txt_name = dd.next_element
@@ -79,6 +94,9 @@ module FFXIV
                 case dd.content
                   when "Nameday"
                     props[:nameday] = t
+                    match = t.match /^(\d+).+?the\s(.*)$/
+                    pp match
+                    props[:birthday] = Date.new(2013, months[match[2]], match[1].to_i)
                   when "Guardian"
                     props[:guardian] = t
                   when "City-state"
@@ -132,6 +150,14 @@ module FFXIV
           @free_company = FreeCompany.find_by_name(@free_company, @server)
         end
         @free_company
+      end
+
+      def birthday
+        Utils.ed2gd(@nameday)
+      end
+
+      def data_center
+        Utils.data_center(@server)
       end
 
       def num_blogs
