@@ -125,7 +125,14 @@ module FFXIV
             props[:self_introduction] = self_introduction == "" ? nil : self_introduction
 
             props[:classes] = {}
-            %w{Fighter Sorcerer Crafter Gatherer}.each do |discipline|
+            disciplines = {
+              "fighter" => "Figther",
+              "sorcerer" => "Sorcerer",
+              "extrajob" => "Extra Job",
+              "crafter" => "Crafter",
+              "gatherer" => "Gatherer"
+            }
+            disciplines.each do |discipline|
               props[:classes][discipline] = {}
               dom.search("h4.class_#{discipline.downcase} + div.table_black_w626 td.ic_class_wh24_box").each do |td|
                 txt = td.content
