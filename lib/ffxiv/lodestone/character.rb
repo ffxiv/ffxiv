@@ -132,9 +132,9 @@ module FFXIV
               "crafter" => "Crafter",
               "gatherer" => "Gatherer"
             }
-            disciplines.each do |discipline|
+            disciplines.each do |cls, discipline|
               props[:classes][discipline] = {}
-              dom.search("h4.class_#{discipline.downcase} + div.table_black_w626 td.ic_class_wh24_box").each do |td|
+              dom.search("h4.class_#{cls} + div.table_black_w626 td.ic_class_wh24_box").each do |td|
                 txt = td.content
                 unless txt.empty?
                   lvl = td.next_sibling().next_sibling().content.to_i
