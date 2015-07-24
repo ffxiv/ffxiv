@@ -46,7 +46,9 @@ module FFXIV
 
       def ed2gd(ed)
         partials = ed.match(/^(\d+).+([1-6].*)$/)
-        Date.new(2013, @@eorzean_months[partials[2]], @@eorzean_days[partials[2]][partials[1].to_i])
+        # Wanted to use 2013 as year, but 2013 is not a leap year, resulting in invalid format error on deriving a birthday if nameday is "32st Sun of the 1st Umbral Moon".
+        # Use the closest year here since year value is not relevant anyways.
+        Date.new(2012, @@eorzean_months[partials[2]], @@eorzean_days[partials[2]][partials[1].to_i])
       end
 
       def servers
