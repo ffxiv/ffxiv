@@ -95,7 +95,6 @@ module FFXIV
                   when "Nameday"
                     props[:nameday] = t
                     match = t.match /^(\d+).+?the\s(.*)$/
-                    pp match
                     props[:birthday] = Date.new(2013, months[match[2]], match[1].to_i)
                   when "Guardian"
                     props[:guardian] = t
