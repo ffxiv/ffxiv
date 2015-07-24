@@ -63,6 +63,7 @@ module FFXIV
             ch_name = dom.at("div.player_name_txt h2 a")
             props[:name] = ch_name.content
             props[:server] = ch_name.next_element.content.strip[1...-1]
+            props[:data_center] = Utils.data_center(props[:server])
             props[:thumbnail_uri] = drop_uts(dom.at("div.player_name_thumb img").attr("src"))
             props[:image_uri] = drop_uts(dom.at("div.bg_chara_264 img").attr("src"))
             props[:race], props[:subrace], gender = dom.at("div.chara_profile_title").content.strip.split(" / ")
@@ -94,8 +95,7 @@ module FFXIV
                 case dd.content
                   when "Nameday"
                     props[:nameday] = t
-                    match = t.match /^(\d+).+?the\s(.*)$/
-                    props[:birthday] = Date.new(2013, months[match[2]], match[1].to_i)
+                    props[:birthday] = Utils.ed2gd(props[:nameday])
                   when "Guardian"
                     props[:guardian] = t
                   when "City-state"
@@ -156,14 +156,6 @@ module FFXIV
           @free_company = FreeCompany.find_by_name(@free_company, @server)
         end
         @free_company
-      end
-
-      def birthday
-        Utils.ed2gd(@nameday)
-      end
-
-      def data_center
-        Utils.data_center(@server)
       end
 
       def num_blogs
