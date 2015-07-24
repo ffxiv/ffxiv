@@ -63,14 +63,18 @@ module FFXIV
         end
       end
 
-      def members
+      def members(verbose = false)
         if @members.nil?
           members = {}
           num_pages = (@num_members / 50.0).ceil # 50 members / page
           1.upto(num_pages) do |page_no|
             dom = Lodestone.fetch("linkshell/#{@id}?page=#{page_no}")
             dom.search("div.player_name_area").each do |node|
-              cid = node.at("div.name_box a").attr("href").split("/")[-1]
+              div_name_box = node.at("div.name_box")
+              div_name_box_a = div_name_box.at("a")
+              cid = div_name_box_a.attr("href").split("/")[-1]
+              cname = div_name_box_a.content.strip
+              cserver = div_name_box.at("span").content.strip[1...-1]
               if node.at("span.ic_master")
                 lsrank = :master
               elsif node.at("span.ic_leader")
@@ -78,13 +82,21 @@ module FFXIV
               else
                 lsrank = :member
               end
-              members[cid] = lsrank
+              members[cid] = {
+                name: cname,
+                server: cserver,
+                linkshell_rank: lsrank
+              }
             end
           end
           characters = []
-          members.each do |cid, lsrank|
-            character = Character.find_by_id(cid)
-            character.linkshell_rank = lsrank
+          members.each do |cid, cdata|
+            if verbose
+              character = Character.find_by_id(cid)
+              character.linkshell_rank = cdata[:linkshell_rank]
+            else
+              character = Character.new(cdata)
+            end
             characters << character
           end
           @members = characters
