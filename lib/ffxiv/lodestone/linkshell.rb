@@ -65,7 +65,7 @@ module FFXIV
 
       def members(verbose = false)
         if @members.nil?
-          members = {}
+          members = []
           num_pages = (@num_members / 50.0).ceil # 50 members / page
           1.upto(num_pages) do |page_no|
             dom = Lodestone.fetch("linkshell/#{@id}?page=#{page_no}")
@@ -82,7 +82,8 @@ module FFXIV
               else
                 lsrank = :member
               end
-              members[cid] = {
+              members << {
+                id: cid,
                 name: cname,
                 server: cserver,
                 linkshell_rank: lsrank
@@ -90,9 +91,9 @@ module FFXIV
             end
           end
           characters = []
-          members.each do |cid, cdata|
+          members.each do |cdata|
             if verbose
-              character = Character.find_by_id(cid)
+              character = Character.find_by_id(cdata[:id])
               character.linkshell_rank = cdata[:linkshell_rank]
             else
               character = Character.new(cdata)
